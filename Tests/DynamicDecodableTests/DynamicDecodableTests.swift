@@ -68,14 +68,13 @@ final class DynamicDecodableTests: XCTestCase {
     
     func testDecodeArray() throws {
         let data = try DynamicDecodable(json2)
-        let array = data.items?.array
-        
-        XCTAssertEqual(array?.count, 3)
-        XCTAssertTrue(array?[0].id == 1)
-        XCTAssertTrue(array?[2].id == 3)
-        XCTAssertTrue(array?[1].isActive == false)
-        XCTAssertTrue(array?[1].name == "Item Two")
-        XCTAssertTrue(array?[0].is_active == true)
+
+        XCTAssertEqual(data.items?.array?.count, 3)
+        XCTAssertTrue(data.items?[0]?.id == 1)
+        XCTAssertTrue(data.items?[2]?.id == 3)
+        XCTAssertTrue(data.items?[1]?.isActive == false)
+        XCTAssertTrue(data.items?[1]?.name == "Item Two")
+        XCTAssertTrue(data.items?[0]?.is_active == true)
     }
     
     func testMapping() throws {
@@ -99,5 +98,35 @@ final class DynamicDecodableTests: XCTestCase {
         item1.date <- data.dateAsTimeInterval
         
         XCTAssertEqual(item1, sampleItem)
+    }
+    
+    func testComparable() throws {
+        let data = try DynamicDecodable(json1)
+        
+        XCTAssertTrue(data.double < 250)
+        XCTAssertTrue(data.double > 100)
+        
+        let data2 = try DynamicDecodable(json2)
+        let item1 = data2.items?.array?.first { $0.id == 2 }
+        XCTAssertEqual(item1?.name?.stringValue, "Item Two")
+        
+    }
+    
+    func testDateFormats() throws {
+        DynamicDecodable.dateFormats.append("yyyy-MM-dd")
+        
+        let json3 =
+        """
+        { 
+            "date": "2000-01-01",
+            "created_at": "2024-05-06T14:05:23.000000Z"
+        }
+        """.data(using: .utf8)!
+        
+        let testDate = DateComponents(year: 2000, month: 01, day: 01).date
+        
+        let item = try DynamicDecodable(json3)
+        XCTAssertEqual(item.dateValue, testDate)
+        XCTAssertNotNil(item.createdAt)
     }
 }

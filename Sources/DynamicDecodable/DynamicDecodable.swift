@@ -15,12 +15,16 @@ public enum DynamicDecodableError: Error {
 }
 
 @dynamicMemberLookup
-indirect public enum DynamicDecodable {
+indirect public enum DynamicDecodable: Equatable {
     
-    public static var dateFormats: [String] = [
-        "yyyy-MM-dd'T'HH:mm:ss.SSSZ",
-        "yyyy-MM-dd HH:mm:ss"
+    public static var dateFormats: [String] = []
+    
+    public static var isoDateFormatOptions: [ISO8601DateFormatter.Options] = [
+        [.withFullDate, .withFullTime, .withFractionalSeconds],
+        [.withInternetDateTime]
     ]
+    
+    public static var timeZone: TimeZone?
     
     case int(Int)
     case string(String)
@@ -142,25 +146,32 @@ indirect public enum DynamicDecodable {
         return URL(string: string)
     }
     
-    public var date: Date? {
+    public var dateValue: Date? {
         switch self {
             case .int(let value):
                 return Date(timeIntervalSince1970: Self.timeIntervalInSeconds(value))
             case .double(let value):
                 return Date(timeIntervalSince1970: value)
             case .string(let str):
-                if let date = ISO8601DateFormatter().date(from: str) {
-                    return date
-                } else {
-                    let formatter = DateFormatter()
-                    for format in Self.dateFormats {
-                        formatter.dateFormat = format
-                        if let date = formatter.date(from: str) {
-                            return date
-                        }
+                // First check ISO Date Formats
+                let isoFormatter = ISO8601DateFormatter()
+                isoFormatter.timeZone = Self.timeZone
+                for format in Self.isoDateFormatOptions {
+                    isoFormatter.formatOptions = format
+                    if let date = isoFormatter.date(from: str) {
+                        return date
                     }
-                    return nil
                 }
+                // Next check custom formats
+                let formatter = DateFormatter()
+                formatter.timeZone = Self.timeZone
+                for format in Self.dateFormats {
+                    formatter.dateFormat = format
+                    if let date = formatter.date(from: str) {
+                        return date
+                    }
+                }
+                return nil
             default:
                 return nil
         }
@@ -214,61 +225,7 @@ extension DynamicDecodable: CustomStringConvertible, CustomDebugStringConvertibl
     
 }
 
-extension DynamicDecodable: Equatable {
-    
-    public static func ==(lhs: DynamicDecodable, rhs: String) -> Bool {
-        lhs.stringValue == rhs
-    }
 
-    public static func ==(lhs: DynamicDecodable, rhs: Int) -> Bool {
-        lhs.intValue == rhs
-    }
-    
-    public static func ==(lhs: DynamicDecodable, rhs: Bool) -> Bool {
-        lhs.boolValue == rhs
-    }
-    
-    public static func ==(lhs: DynamicDecodable, rhs: Decimal) -> Bool {
-        lhs.decimalValue == rhs
-    }
-    
-    public static func ==(lhs: DynamicDecodable, rhs: Double) -> Bool {
-        lhs.doubleValue == rhs
-    }
-    
-    public static func ==(lhs: DynamicDecodable, rhs: Date) -> Bool {
-        lhs.date == rhs
-    }
-    
-}
-
-extension Optional where Wrapped == DynamicDecodable {
-    
-    public static func ==(lhs: DynamicDecodable?, rhs: String) -> Bool {
-        lhs?.stringValue == rhs
-    }
-    
-
-    public static func ==(lhs: DynamicDecodable?, rhs: Int) -> Bool {
-        lhs?.intValue == rhs
-    }
-    
-    public static func ==(lhs: DynamicDecodable?, rhs: Bool) -> Bool {
-        lhs?.boolValue == rhs
-    }
-    
-    public static func ==(lhs: DynamicDecodable?, rhs: Decimal) -> Bool {
-        lhs?.decimalValue == rhs
-    }
-    
-    public static func ==(lhs: DynamicDecodable?, rhs: Double) -> Bool {
-        lhs?.doubleValue == rhs
-    }
-    
-    public static func ==(lhs: DynamicDecodable?, rhs: Date) -> Bool {
-        lhs?.date == rhs
-    }
-}
 
 // MARK: Assignment Operators
 infix operator <-: AssignmentPrecedence
@@ -292,7 +249,7 @@ extension RawRepresentable where RawValue == String {
 public extension Date {
     
     static func <-(lhs: inout Date, rhs: DynamicDecodable?) {
-        if let newDate = rhs?.date {
+        if let newDate = rhs?.dateValue {
             lhs = newDate
         }
     }
@@ -302,7 +259,7 @@ public extension Date {
 public extension Optional where Wrapped == Date {
     
     static func <-(lhs: inout Optional, rhs: DynamicDecodable?) {
-        lhs = rhs?.date
+        lhs = rhs?.dateValue
     }
     
 }
