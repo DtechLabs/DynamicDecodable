@@ -47,7 +47,7 @@ Accessing various data types:
 ```swift
 let name = item.name.stringValue
 let id = item.id.intValue
-let amount = item.decimalValue // Decimal is preferred to avoid Double rounding errors
+let amount = item.amount.decimalValue // Decimal is preferred to avoid Double rounding errors
 let createdAt = item.createdAt.date
 ```
 
