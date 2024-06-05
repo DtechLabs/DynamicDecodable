@@ -2,23 +2,42 @@
 // The swift-tools-version declares the minimum version of Swift required to build this package.
 
 import PackageDescription
+import CompilerPluginSupport
 
 let package = Package(
     name: "DynamicDecodable",
-    platforms: [.iOS(.v15), .macOS(.v10_13), .watchOS(.v7)],
+    platforms: [.macOS(.v12), .iOS(.v13), .tvOS(.v13), .watchOS(.v6), .macCatalyst(.v13)],
     products: [
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "DynamicDecodable",
-            targets: ["DynamicDecodable"]),
+            targets: ["DynamicDecodable"]
+        ),
+        .library(name: "DynamicMapping", targets: ["DynamicMapping"])
+    ],
+    dependencies: [
+        .package(url: "https://github.com/apple/swift-syntax.git", from: "509.0.0"),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
+        .macro(
+            name: "DynamicMappingMacroImpl",
+            dependencies: [
+                .product(name: "SwiftSyntaxMacros", package: "swift-syntax"),
+                .product(name: "SwiftCompilerPlugin", package: "swift-syntax")
+            ]
+        ),
+        .target(name: "DynamicDecodable"),
         .target(
-            name: "DynamicDecodable"),
+            name: "DynamicMapping",
+            dependencies: ["DynamicMappingMacroImpl"]
+        ),
         .testTarget(
             name: "DynamicDecodableTests",
-            dependencies: ["DynamicDecodable"]),
+            dependencies: [
+                "DynamicMapping",
+                "DynamicDecodable",
+                .product(name: "SwiftSyntaxMacrosTestSupport", package: "swift-syntax")
+            ]
+        )
     ]
 )
