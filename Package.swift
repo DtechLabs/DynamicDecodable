@@ -12,6 +12,10 @@ let package = Package(
         .library(
             name: "DynamicDecodable",
             targets: ["DynamicDecodable"]
+        ),
+        .executable(
+            name: "DynamicDecodableExampleApp",
+            targets: ["DynamicDecodableExampleApp"]
         )
     ],
     dependencies: [
@@ -28,6 +32,10 @@ let package = Package(
         .target(
             name: "DynamicDecodable",
             plugins: [.plugin(name: "DynamicDecodeMappingMacros")]
+        ),
+        .executableTarget(
+            name: "DynamicDecodableExampleApp",
+            dependencies: ["DynamicDecodable"]
         ),
         .testTarget(
             name: "DynamicDecodableTests",
