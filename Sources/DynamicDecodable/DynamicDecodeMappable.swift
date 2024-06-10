@@ -16,5 +16,5 @@ public protocol DynamicDecodeMappable {
     
 }
 
-@attached(extension, conformances: DynamicDecodeMappable)
+@attached(extension, conformances: DynamicDecodeMappable, names: named(init))
 public macro DynamicDecodableMapping() = #externalMacro(module: "DynamicDecodeMappingMacros", type: "DynamicDecodeMappingMacro")
