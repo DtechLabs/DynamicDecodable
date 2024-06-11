@@ -70,7 +70,7 @@ indirect public enum DynamicDecodable: Equatable {
         guard case .dictionary(let dictionary) = self else {
             return nil
         }
-        return dictionary[member.asSnakeCase] ?? dictionary[member]
+        return dictionary[member] ?? dictionary[Self.stringAsSnakeCase(member)]
     }
     
     public subscript(index: Int) -> DynamicDecodable? {

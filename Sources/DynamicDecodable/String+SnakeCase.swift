@@ -10,12 +10,12 @@
 
 import Foundation
 
-extension String {
+public extension DynamicDecodable {
     
-    var asSnakeCase: String {
+    static func stringAsSnakeCase(_ str: String) -> String {
         let regex = try! NSRegularExpression(pattern: "([a-z0-9])([A-Z])")
-        let range = NSRange(location: 0, length: self.utf16.count)
-        let snakeCasedString = regex.stringByReplacingMatches(in: self, options: [], range: range, withTemplate: "$1_$2")
+        let range = NSRange(location: 0, length: str.utf16.count)
+        let snakeCasedString = regex.stringByReplacingMatches(in: str, options: [], range: range, withTemplate: "$1_$2")
         return snakeCasedString.lowercased()
     }
     
