@@ -179,7 +179,10 @@ public struct DynamicDecodeMappingMacro: ExtensionMacro {
     }
     
     static private func buildGuardEnumConditions(_ rawType: TypeSyntax, type: TypeSyntaxProtocol) throws -> ConditionElementListSyntax {
-        guard let typeDesc = try Self.mapTypeSyntax(rawType) else {
+        guard
+            rawType.description == "String" || rawType.description == "Int",
+            let typeDesc = try Self.mapTypeSyntax(rawType)
+        else {
             throw DynamicMappingError.unsupportedEnumRawType
         }
         
@@ -189,10 +192,16 @@ public struct DynamicDecodeMappingMacro: ExtensionMacro {
             initializer: .init(value: ExprSyntax("data?.\(raw: typeDesc)"))
         )
         
+        let typeName = type.trimmed.description
+        let exp: ExprSyntax = if rawType.description == "String" {
+             "\(raw: typeName)(rawValue: rawValue) ?? \(raw: typeName)(rawValue: Self.stringAsSnakeCase(rawValue))"
+        } else {
+            "\(raw: typeName)(rawValue: rawValue)"
+        }
         let valueBinding = OptionalBindingConditionSyntax(
             bindingSpecifier: .keyword(.let),
             pattern: PatternSyntax("value"),
-            initializer: .init(value: ExprSyntax("\(raw: type.trimmed.description)(rawValue: rawValue)"))
+            initializer: .init(value: exp)
         )
         
         return [

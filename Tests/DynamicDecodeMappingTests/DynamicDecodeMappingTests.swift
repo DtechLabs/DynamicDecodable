@@ -180,7 +180,7 @@ final class DynamicDecodableMappingTests: XCTestCase {
             
             extension MyOption: DynamicDecodeMappable {
                 init?(_ data: DynamicDecodable?) {
-                    guard let rawValue = data?.stringValue, let value = MyOption(rawValue: rawValue) else {
+                    guard let rawValue = data?.stringValue, let value = MyOption(rawValue: rawValue) ?? MyOption(rawValue: Self.stringAsSnakeCase(rawValue)) else {
                         return nil
                     }
                     self = value
