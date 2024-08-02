@@ -27,6 +27,9 @@ let package = Package(
         ),
         .target(
             name: "DynamicDecodable",
+            swiftSettings: [
+                .unsafeFlags(["-load-plugin-executable", "$BUILT_PRODUCTS_DIR/DynamicDecodeMappingMacros#DynamicDecodeMappingMacros"])
+            ],
             plugins: [.plugin(name: "DynamicDecodeMappingMacros")]
         ),
         .testTarget(
